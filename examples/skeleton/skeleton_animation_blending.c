@@ -7,18 +7,21 @@
    locomotion animations(listed in `enum ANIM`).
 
  Use the following macros to see the layers in action.
-   - #define THREE_LAYER_IMPL : This directive will use three layer
-       implementation. Which first binds an animation frame of IDLE
-       animation then it adds one override layer(interpolation layer)
-       of RUN or RUN_BACK (depending on input). Followed by
-       another override layer of RUN_LEFT or RUN_RIGHT(depending on
-       input).
+  - #define THREE_LAYER_IMPL : This directive will use three layer
+      implementation. Which first binds an animation frame of IDLE
+      animation then it adds one override layer(interpolation layer)
+      of RUN or RUN_BACK (depending on input). Followed by
+      another override layer of RUN_LEFT or RUN_RIGHT(depending on
+      input).
+  - #define TWO_LAYER_IMPL : This directive will use two layer
+      implementation. Which will first bind a blended animation pose
+      consisting of forward and sideways animation to skeleton.
+      Followed by idle pose.
 
  Authors:
   - Kirandeep Singh (@Kirandeep-Singh-Khehra)
 
- This system is built for raylib (https://github.com/raysan5/raylib/)
-
+ This system is built as drop in for raylib (https://github.com/raysan5/raylib/)
 \******************************************************************/
 
 #include "../common/boilerplate_main.h"
