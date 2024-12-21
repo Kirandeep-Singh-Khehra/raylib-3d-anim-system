@@ -159,13 +159,18 @@ void OnDraw() {
   DrawCube((Vector3){velocity.y, 0.0, velocity.x}, 0.1f, 0.1f, 0.1f, RED);
   DrawCube((Vector3){inputDirection.y, 0.0, inputDirection.x}, 0.1f, 0.1f, 0.1f,
            BLUE);
-  DrawCube(skeleton.pose[0].translation, 0.1f, 0.1f, 0.1f, BLUE);
-  DrawCube(skeleton.bindPose[0].translation, 0.1f, 0.1f, 0.1f, GREEN);
   DrawGrid(20, 1);
+}
+
+void OnDrawHUD() {
+  DrawText("Use T/F/G/H to move character", 10.0f, 10.0f, 20.0f, GREEN);
 }
 
 void OnEnd() {
   UnloadModelAnimations(anims, animsCount);
   UnloadModel(model);
+  UnloadSkeleton(skeleton);
+
+  free(fullBodyMask);
 }
 

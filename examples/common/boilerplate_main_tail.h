@@ -26,7 +26,7 @@ int main() {
   lights[0] = CreateLight(LIGHT_POINT, (Vector3){-2, 1, -2}, Vector3Zero(),
                           WHITE, skinningShader);
 
-  camera.position = (Vector3){0.0f, 5.0f, -5.0f};
+  camera.position = (Vector3){0.0f, 3.0f, -3.0f};
   camera.target = (Vector3){0.0f, 0.0f, 0.0f};
   camera.up = (Vector3){0.0f, 1.0f, 0.0f};
   camera.fovy = 45.0f;
@@ -51,6 +51,8 @@ int main() {
         OnDraw();
       }
       EndMode3D();
+
+      OnDrawHUD();
     }
     EndDrawing();
   } /* while */

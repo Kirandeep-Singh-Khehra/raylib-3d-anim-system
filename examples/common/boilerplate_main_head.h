@@ -28,6 +28,7 @@ Camera camera;
 void OnStart();
 void OnUpdate();
 void OnDraw();
+void OnDrawHUD();
 void OnEnd();
 
 #endif
