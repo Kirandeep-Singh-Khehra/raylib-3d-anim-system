@@ -14,8 +14,11 @@ void UnloadPose(Pose pose);
 
 Pose PoseScale(Pose pose, int boneCount, float factor);
 Pose PoseInvert(Pose pose, int boneCount);
-Pose PoseAdd(Pose poseA, Pose poseB, int boneCount);
+Pose PoseApply(Pose poseA, Pose poseB, int boneCount);
+Pose PoseGenerateAdditivePose(Pose pose, Pose referencePose, int boneCount);
 Pose PoseLerp(Pose poseA, Pose poseB, int boneCount, float factor);
+Pose PoseAdditiveBlend(Pose poseA, Pose poseB, int boneCount, float factorA,
+                       float factorB);
 
 Pose PoseToPoseTransform(Pose poseA, Pose poseB, int boneCount);
 Matrix *PoseToPoseTransformMatrices(Pose poseA, Pose poseB, int boneCount);
@@ -25,6 +28,9 @@ Pose PoseToLocalTransformPose(Pose pose, BoneInfo *bones, int boneCount);
 Pose PoseToGlobalTransformPose(Pose pose, BoneInfo *bones, int boneCount);
 
 void UpdateModelMeshFromPose(Model model, Pose pose);
+
+void DrawPose(Pose pose, BoneInfo *bones, int boneCount, Matrix mat,
+              Color color);
 
 Pose InitPose(int boneCount) {
   Pose p = malloc(boneCount * sizeof(Transform));
@@ -50,6 +56,16 @@ Pose PoseScale(Pose pose, int boneCount, float factor) {
   return pose;
 }
 
+Pose PoseGenerateAdditivePose(Pose targetPose, Pose referencePose,
+                              int boneCount) {
+  Pose pose = InitPose(boneCount);
+  for (int i = 0; i < boneCount; i++) {
+    pose[i] = RelativeTransform(targetPose[i], referencePose[i]);
+  }
+
+  return pose;
+}
+
 Pose PoseLerp(Pose poseA, Pose poseB, int boneCount, float factor) {
   Pose pose = InitPose(boneCount);
 
@@ -60,11 +76,26 @@ Pose PoseLerp(Pose poseA, Pose poseB, int boneCount, float factor) {
   return pose;
 }
 
-Pose PoseAdd(Pose poseA, Pose poseB, int boneCount) {
+Pose PoseAdditiveBlend(Pose poseA, Pose poseB, int boneCount, float weightA,
+                       float weightB) {
   Pose pose = InitPose(boneCount);
 
   for (int i = 0; i < boneCount; i++) {
-    pose[i] = TransformAdd(poseA[i], poseB[i]);
+
+    Transform in = TransformScale(poseA[i], weightA);
+    Transform out = TransformScale(poseB[i], weightB);
+
+    pose[i] = TransformApply(in, out);
+  }
+
+  return pose;
+}
+
+Pose PoseApply(Pose poseA, Pose poseB, int boneCount) {
+  Pose pose = InitPose(boneCount);
+
+  for (int i = 0; i < boneCount; i++) {
+    pose[i] = TransformApply(poseA[i], poseB[i]);
   }
 
   return pose;
@@ -138,69 +169,87 @@ void UpdateModelMeshFromPose(Model model, Pose pose) {
 }
 
 Pose PoseToLocalTransformPose(Pose globalPose, BoneInfo *bones, int boneCount) {
-    Pose relativePose = InitPose(boneCount);
+  Pose relativePose = InitPose(boneCount);
 
-    for (int i = 0; i < boneCount; i++) {
-        int parentIndex = bones[i].parent;
-        if (parentIndex == -1) {
-            relativePose[i] = globalPose[i];
-        } else {
-            Transform parentGlobalTransform = globalPose[parentIndex];
+  for (int i = 0; i < boneCount; i++) {
+    int parentIndex = bones[i].parent;
+    if (parentIndex == -1) {
+      relativePose[i] = globalPose[i];
+    } else {
+      Transform parentGlobalTransform = globalPose[parentIndex];
 
-            Vector3 relativeTranslation = Vector3RotateByQuaternion(
-                Vector3Subtract(globalPose[i].translation, parentGlobalTransform.translation),
-                QuaternionInvert(parentGlobalTransform.rotation)
-            );
+      Vector3 relativeTranslation = Vector3RotateByQuaternion(
+          Vector3Subtract(globalPose[i].translation,
+                          parentGlobalTransform.translation),
+          QuaternionInvert(parentGlobalTransform.rotation));
 
-            Quaternion relativeRotation = QuaternionMultiply(
-                QuaternionInvert(parentGlobalTransform.rotation),
-                globalPose[i].rotation
-            );
+      Quaternion relativeRotation =
+          QuaternionMultiply(QuaternionInvert(parentGlobalTransform.rotation),
+                             globalPose[i].rotation);
 
-            Vector3 relativeScale = Vector3Divide(globalPose[i].scale, parentGlobalTransform.scale);
+      Vector3 relativeScale =
+          Vector3Divide(globalPose[i].scale, parentGlobalTransform.scale);
 
-            relativePose[i].translation = relativeTranslation;
-            relativePose[i].rotation = relativeRotation;
-            relativePose[i].scale = relativeScale;
-        }
+      relativePose[i].translation = relativeTranslation;
+      relativePose[i].rotation = relativeRotation;
+      relativePose[i].scale = relativeScale;
     }
+  }
 
-    return relativePose;
+  return relativePose;
 }
 
 Pose PoseToGlobalTransformPose(Pose localPose, BoneInfo *bones, int boneCount) {
-    Pose globalPose = InitPose(boneCount);
+  Pose globalPose = InitPose(boneCount);
 
-    for (int i = 0; i < boneCount; i++) {
-        int parentIndex = bones[i].parent;
+  for (int i = 0; i < boneCount; i++) {
+    int parentIndex = bones[i].parent;
 
-        if (parentIndex == -1) {
-            globalPose[i] = localPose[i];
-        } else {
-            Transform parentGlobalTransform = globalPose[parentIndex];
+    if (parentIndex == -1) {
+      globalPose[i] = localPose[i];
+    } else {
+      Transform parentGlobalTransform = globalPose[parentIndex];
 
-            Vector3 globalTranslation = Vector3Add(
-                parentGlobalTransform.translation,
-                Vector3RotateByQuaternion(localPose[i].translation, parentGlobalTransform.rotation)
-            );
+      Vector3 globalTranslation =
+          Vector3Add(parentGlobalTransform.translation,
+                     Vector3RotateByQuaternion(localPose[i].translation,
+                                               parentGlobalTransform.rotation));
 
-            Quaternion globalRotation = QuaternionMultiply(
-                parentGlobalTransform.rotation,
-                localPose[i].rotation
-            );
+      Quaternion globalRotation = QuaternionMultiply(
+          parentGlobalTransform.rotation, localPose[i].rotation);
 
-            Vector3 globalScale = Vector3Multiply(parentGlobalTransform.scale, localPose[i].scale);
+      Vector3 globalScale =
+          Vector3Multiply(parentGlobalTransform.scale, localPose[i].scale);
 
-            globalPose[i].translation = globalTranslation;
-            globalPose[i].rotation = globalRotation;
-            globalPose[i].scale = globalScale;
-        }
+      globalPose[i].translation = globalTranslation;
+      globalPose[i].rotation = globalRotation;
+      globalPose[i].scale = globalScale;
     }
+  }
 
-    return globalPose;
+  return globalPose;
 }
 
-void UnloadPose(Pose pose) { free(pose); }
+void UnloadPose(Pose pose) {
+  if (!pose) {
+    free(pose);
+  }
+}
+
+void DrawPose(Pose pose, BoneInfo *bones, int boneCount, Matrix mat,
+              Color color) {
+  for (int i = 0; i < boneCount; i++) {
+    DrawCube(Vector3Transform(pose[i].translation, mat),
+             pose[i].scale.x * 0.05f, pose[i].scale.y * 0.05f,
+             pose[i].scale.z * 0.05f, color);
+
+    if (bones[i].parent >= 0) {
+      DrawLine3D(Vector3Transform(pose[i].translation, mat),
+                 Vector3Transform(pose[bones[i].parent].translation, mat),
+                 color);
+    }
+  }
+}
 
 #endif
 

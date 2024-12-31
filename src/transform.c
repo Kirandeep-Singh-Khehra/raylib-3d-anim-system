@@ -7,7 +7,7 @@
 Transform TransformScale(Transform transformA, float factor);
 Transform TransformLerp(Transform transformA, Transform transformB,
                         float factor);
-Transform TransformAdd(Transform transformA, Transform transformB);
+Transform TransformApply(Transform transformA, Transform transformB);
 Transform TransformToTransformTransform(Transform in, Transform out);
 Transform TransformInvert(Transform transform);
 Matrix TransformToMatrix(Transform transform);
@@ -18,7 +18,9 @@ Transform TransformScale(Transform transform, float factor) {
   transformResult.translation = Vector3Scale(transform.translation, factor);
   transformResult.rotation =
       QuaternionSlerp(QuaternionIdentity(), transform.rotation, factor);
-  transformResult.scale = Vector3Scale(transform.scale, factor);
+  transformResult.scale.x = pow(transform.scale.x, factor);
+  transformResult.scale.y = pow(transform.scale.y, factor);
+  transformResult.scale.z = pow(transform.scale.z, factor);
 
   return transformResult;
 }
@@ -36,14 +38,26 @@ Transform TransformLerp(Transform transformA, Transform transformB,
   return transform;
 }
 
-Transform TransformAdd(Transform transformA, Transform transformB) {
+Transform TransformApply(Transform transformA, Transform transformB) {
   Transform transform = {0};
 
   transform.translation =
       Vector3Add(transformA.translation, transformB.translation);
   transform.rotation =
       QuaternionMultiply(transformA.rotation, transformB.rotation);
-  transform.scale = Vector3Add(transformA.scale, transformB.scale);
+  transform.scale = Vector3Multiply(transformA.scale, transformB.scale);
+
+  return transform;
+}
+
+Transform TransformSubtract(Transform transformA, Transform transformB) {
+  Transform transform = {0};
+
+  transform.translation =
+      Vector3Subtract(transformA.translation, transformB.translation);
+  transform.rotation =
+      QuaternionMultiply(transformB.rotation, QuaternionInvert(transformA.rotation));
+  transform.scale = Vector3Divide(transformA.scale, transformB.scale);
 
   return transform;
 }
@@ -74,6 +88,23 @@ Transform TransformToTransformTransform(Transform in, Transform out) {
   result.scale = Vector3Multiply(out.scale, inv.scale);
 
   return result;
+}
+
+Transform RelativeTransform(Transform first, Transform second) {
+  Transform out = {0};
+
+  Quaternion invSecondRotation = QuaternionInvert(second.rotation);
+  Vector3 invScale = Vector3Invert(second.scale);
+
+  Vector3 catchePosition = Vector3Subtract(first.translation, second.translation);
+  catchePosition = Vector3RotateByQuaternion(catchePosition, invSecondRotation);
+  catchePosition = Vector3Multiply(catchePosition, invScale);
+
+  out.translation = catchePosition;
+  out.rotation = QuaternionMultiply(invSecondRotation, first.rotation);
+  out.scale = Vector3Multiply(first.scale, invScale);
+
+  return out;
 }
 
 Matrix TransformToMatrix(Transform transform) {
