@@ -1,6 +1,7 @@
 #ifndef __KIRAN_RAY_POSE__
 #define __KIRAN_RAY_POSE__
 
+#include "bone_mask.c"
 #include "transform.c"
 
 #include <stdlib.h>
@@ -17,8 +18,11 @@ Pose PoseInvert(Pose pose, int boneCount);
 Pose PoseApply(Pose poseA, Pose poseB, int boneCount);
 Pose PoseGenerateAdditivePose(Pose pose, Pose referencePose, int boneCount);
 Pose PoseLerp(Pose poseA, Pose poseB, int boneCount, float factor);
+
+Pose PoseOverrideBlend(Pose poseA, Pose poseB, int boneCount, float factor,
+                       float *boneMask);
 Pose PoseAdditiveBlend(Pose poseA, Pose poseB, int boneCount, float factorA,
-                       float factorB);
+                       float factorB, float *boneMask);
 
 Pose PoseToPoseTransform(Pose poseA, Pose poseB, int boneCount);
 Matrix *PoseToPoseTransformMatrices(Pose poseA, Pose poseB, int boneCount);
@@ -76,16 +80,47 @@ Pose PoseLerp(Pose poseA, Pose poseB, int boneCount, float factor) {
   return pose;
 }
 
-Pose PoseAdditiveBlend(Pose poseA, Pose poseB, int boneCount, float weightA,
-                       float weightB) {
+Pose PoseOverrideBlend(Pose poseA, Pose poseB, int boneCount, float factor,
+                       float *boneMask) {
   Pose pose = InitPose(boneCount);
+
+  bool boneMaskGiven = true;
+  if (boneMask == NULL) {
+    boneMaskGiven = false;
+    boneMask = BoneMaskOnes(boneCount);
+  }
+
+  for (int i = 0; i < boneCount; i++) {
+    pose[i] = TransformLerp(poseA[i], poseB[i], factor * boneMask[i]);
+  }
+
+  if (boneMaskGiven == false) {
+    free(boneMask);
+  }
+
+  return pose;
+}
+
+Pose PoseAdditiveBlend(Pose poseA, Pose poseB, int boneCount, float weightA,
+                       float weightB, float *boneMask) {
+  Pose pose = InitPose(boneCount);
+
+  bool boneMaskGiven = true;
+  if (boneMask == NULL) {
+    boneMaskGiven = false;
+    boneMask = BoneMaskOnes(boneCount);
+  }
 
   for (int i = 0; i < boneCount; i++) {
 
     Transform in = TransformScale(poseA[i], weightA);
-    Transform out = TransformScale(poseB[i], weightB);
+    Transform out = TransformScale(poseB[i], weightB * boneMask[i]);
 
     pose[i] = TransformApply(in, out);
+  }
+
+  if (boneMaskGiven == false) {
+    free(boneMask);
   }
 
   return pose;

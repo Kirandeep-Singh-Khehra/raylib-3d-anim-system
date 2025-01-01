@@ -2,7 +2,8 @@
 #define __KIRAN_RAY_SKELETON__
 
 #include "pose.c"
-#include <stdio.h>
+
+#define USE_LOCAL_POSE (1 << 0)
 
 /*
   Defined to implement bone hierarchy (present to check 
@@ -39,10 +40,11 @@ void UpdateModelBonesFromPose(Model model, Pose pose);
 void UnloadSkeleton(Skeleton skeleton);
 
 void UpdateSkeletonPose(Skeleton skeleton, Pose pose);
+void UpdateSkeletonPoseWithMask(Skeleton skeleton, Pose pose, float *boneMask);
 void UpdateSkeletonModelAnimation(Skeleton skeleton, ModelAnimation anim, int frame);
 void UpdateSkeletonModelAnimationPoseLerp(Skeleton skeleton, ModelAnimation  animA, int frameA, ModelAnimation animB, int frameB, float blendFactor);
 void UpdateSkeletonModelAnimationPoseOverrideLayer(Skeleton skeleton, ModelAnimation anim, int frame, float factor, int flags, float *boneMask);
-void UpdateSkeletonModelAnimationPoseAdditiveLayer(Skeleton skeleton, ModelAnimation anim, int frame, float factor, int flags, float *boneMask);
+void UpdateSkeletonModelAnimationPoseAdditiveLayer(Skeleton skeleton, ModelAnimation anim, int frame, Pose referencePose, float factor, int flags, float *boneMask);
 
 Skeleton LoadSkeletonFromModel(Model model) {
   Skeleton skeleton = {0};
@@ -68,6 +70,14 @@ Skeleton LoadSkeletonFromModel(Model model) {
 
 void UpdateSkeletonPose(Skeleton skeleton, Pose pose) {
   memcpy(skeleton.pose, pose, skeleton.boneCount * sizeof(Transform));
+}
+
+void UpdateSkeletonPoseWithMask(Skeleton skeleton, Pose pose, float *boneMask) {
+  for (int i = 0; i < skeleton.boneCount; i++) {
+    if (boneMask[i] != 0.0f) {
+      skeleton.pose[i] = pose[i];
+    }
+  }
 }
 
 void UpdateSkeletonModelAnimation(Skeleton skeleton, ModelAnimation anim,
@@ -105,10 +115,59 @@ void UpdateSkeletonModelAnimationPoseOverrideLayer(Skeleton skeleton, ModelAnima
       (anim.framePoses != NULL) && (factor != 0.0f)) {
     frame = frame % anim.frameCount;
 
-    Pose pose = PoseLerp(skeleton.pose, anim.framePoses[frame], skeleton.boneCount, factor);
+    Pose pose;
+    if (flags & USE_LOCAL_POSE) {
+      Pose localSkeletonPose = PoseToLocalTransformPose(skeleton.pose, skeleton.bones, skeleton.boneCount);
+      Pose localAnimationPose = PoseToLocalTransformPose(anim.framePoses[frame], skeleton.bones, skeleton.boneCount);
+
+      Pose lerpPose = PoseOverrideBlend(localSkeletonPose, localAnimationPose, skeleton.boneCount, factor, boneMask);
+
+      pose = PoseToGlobalTransformPose(lerpPose, skeleton.bones, skeleton.boneCount);
+
+      UnloadPose(lerpPose);
+      UnloadPose(localSkeletonPose);
+      UnloadPose(localAnimationPose);
+    } else {
+      pose = PoseOverrideBlend(skeleton.pose, anim.framePoses[frame], skeleton.boneCount, factor, boneMask);
+    }
 
     UpdateSkeletonPose(skeleton, pose);
-    free(pose);
+    UnloadPose(pose);
+  }
+}
+
+void UpdateSkeletonModelAnimationPoseAdditiveLayer(Skeleton skeleton, ModelAnimation anim, int frame, Pose referencePose, float factor, int flags, float *boneMask) {
+  if ((anim.frameCount > 0) && (anim.bones != NULL) &&
+      (anim.framePoses != NULL) && (factor != 0.0f)) {
+    frame = frame % anim.frameCount;
+
+    Pose pose;
+    if (flags & USE_LOCAL_POSE) {
+      Pose localSkeletonPose = PoseToLocalTransformPose(skeleton.pose, skeleton.bones, skeleton.boneCount);
+      Pose localAnimationPose = PoseToLocalTransformPose(anim.framePoses[frame], skeleton.bones, skeleton.boneCount);
+      Pose localReferencePose = PoseToLocalTransformPose(referencePose, skeleton.bones, skeleton.boneCount);
+
+      Pose localAdditivePose = PoseGenerateAdditivePose(localAnimationPose, localReferencePose, skeleton.boneCount);
+
+      Pose combinedPose = PoseAdditiveBlend(localSkeletonPose, localAdditivePose, skeleton.boneCount, 1.0f, factor, boneMask);
+
+      pose = PoseToGlobalTransformPose(combinedPose, skeleton.bones, skeleton.boneCount);
+
+      UnloadPose(combinedPose);
+      UnloadPose(localAdditivePose);
+      UnloadPose(localReferencePose);
+      UnloadPose(localAnimationPose);
+      UnloadPose(localSkeletonPose);
+    } else {
+      Pose additivePose = PoseGenerateAdditivePose(anim.framePoses[frame], referencePose, skeleton.boneCount);
+
+      pose = PoseAdditiveBlend(skeleton.pose, additivePose, skeleton.boneCount, 1.0f, factor, boneMask);
+
+      UnloadPose(additivePose);
+    }
+
+    UpdateSkeletonPose(skeleton, pose);
+    UnloadPose(pose);
   }
 }
 
@@ -119,7 +178,6 @@ void UnloadSkeleton(Skeleton skeleton) {
   free(skeleton.bones);
   free(skeleton.boneMatrices);
 }
-
 
 #endif
 

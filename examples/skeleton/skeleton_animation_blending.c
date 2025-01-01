@@ -137,16 +137,16 @@ void OnUpdate() {
 #ifdef THREE_LAYER_IMPL
   UpdateSkeletonModelAnimation(skeleton, anims[IDLE], idleAnimFrameCounter);
   UpdateSkeletonModelAnimationPoseOverrideLayer(
-      skeleton, anims[indexX], animFrameCounter, weightX, 0, fullBodyMask);
+      skeleton, anims[indexX], animFrameCounter, weightX, USE_LOCAL_POSE, fullBodyMask);
   UpdateSkeletonModelAnimationPoseOverrideLayer(
-      skeleton, anims[indexY], animFrameCounter, weightY, 0, fullBodyMask);
+      skeleton, anims[indexY], animFrameCounter, weightY, USE_LOCAL_POSE, fullBodyMask);
 #endif
 #ifdef TWO_LAYER_IMPL
   UpdateSkeletonModelAnimationLerp(skeleton, anims[indexX], animFrameCounter,
                                    anims[indexY], animFrameCounter, weightY);
   UpdateSkeletonModelAnimationPoseOverrideLayer(
       skeleton, anims[Idle], idleAnimFrameCounter,
-      clamp(1.0f - Vector2Length(velocity), 0.0f, 1.0f), 0, fullBodyMask);
+      clamp(1.0f - Vector2Length(velocity), 0.0f, 1.0f), USE_LOCAL_POSE, fullBodyMask);
 #endif
 
   UpdateModelMeshFromPose(model, skeleton.pose);

@@ -86,7 +86,7 @@ void OnUpdate() {
   Pose crouchPoseAdditive = PoseGenerateAdditivePose(crouchPose, idlePose, skeleton.boneCount);
 
   // Note: Weight is doubled
-  Pose resultPose = PoseAdditiveBlend(idlePose, crouchPoseAdditive, skeleton.boneCount, 1.0f, 2.0 * clamp(abs_(additiveLayerWeight), 0.0f, 1.0f));
+  Pose resultPose = PoseAdditiveBlend(idlePose, crouchPoseAdditive, skeleton.boneCount, 1.0f, 2.0 * clamp(abs_(additiveLayerWeight), 0.0f, 1.0f), NULL);
 
   UnloadPose(idlePose);
   UnloadPose(crouchPoseAdditive);
