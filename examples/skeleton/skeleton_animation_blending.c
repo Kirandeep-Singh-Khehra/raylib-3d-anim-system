@@ -143,9 +143,9 @@ void OnUpdate() {
 #endif
 #ifdef TWO_LAYER_IMPL
   UpdateSkeletonModelAnimationLerp(skeleton, anims[indexX], animFrameCounter,
-                                   anims[indexY], animFrameCounter, weightY);
+                                   anims[indexY], animFrameCounter, weightY, USE_LOCAL_POSE);
   UpdateSkeletonModelAnimationPoseOverrideLayer(
-      skeleton, anims[Idle], idleAnimFrameCounter,
+      skeleton, anims[IDLE], idleAnimFrameCounter,
       clamp(1.0f - Vector2Length(velocity), 0.0f, 1.0f), USE_LOCAL_POSE, fullBodyMask);
 #endif
 

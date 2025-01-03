@@ -42,7 +42,7 @@ void UnloadSkeleton(Skeleton skeleton);
 void UpdateSkeletonPose(Skeleton skeleton, Pose pose);
 void UpdateSkeletonPoseWithMask(Skeleton skeleton, Pose pose, float *boneMask);
 void UpdateSkeletonModelAnimation(Skeleton skeleton, ModelAnimation anim, int frame);
-void UpdateSkeletonModelAnimationPoseLerp(Skeleton skeleton, ModelAnimation  animA, int frameA, ModelAnimation animB, int frameB, float blendFactor);
+void UpdateSkeletonModelAnimationLerp(Skeleton skeleton, ModelAnimation  animA, int frameA, ModelAnimation animB, int frameB, float blendFactor, int flags);
 void UpdateSkeletonModelAnimationPoseOverrideLayer(Skeleton skeleton, ModelAnimation anim, int frame, float factor, int flags, float *boneMask);
 void UpdateSkeletonModelAnimationPoseAdditiveLayer(Skeleton skeleton, ModelAnimation anim, int frame, Pose referencePose, float factor, int flags, float *boneMask);
 
@@ -93,7 +93,7 @@ void UpdateSkeletonModelAnimation(Skeleton skeleton, ModelAnimation anim,
 
 void UpdateSkeletonModelAnimationLerp(Skeleton skeleton, ModelAnimation animA, int frameA,
                             ModelAnimation animB, int frameB,
-                            float blendFactor) {
+                            float blendFactor, int flags) {
   if ((animA.frameCount > 0) && (animA.bones != NULL) &&
       (animA.framePoses != NULL) && (animB.frameCount > 0) &&
       (animB.bones != NULL) && (animB.framePoses != NULL) &&
@@ -101,8 +101,20 @@ void UpdateSkeletonModelAnimationLerp(Skeleton skeleton, ModelAnimation animA, i
     frameA = frameA % animA.frameCount;
     frameB = frameB % animB.frameCount;
 
-    Pose pose = PoseLerp(animA.framePoses[frameA], animB.framePoses[frameB], skeleton.boneCount, blendFactor);
+    Pose pose;
+    if (flags & USE_LOCAL_POSE) {
+      Pose localAnimAPose = PoseToLocalTransformPose(animA.framePoses[frameA], skeleton.bones, skeleton.boneCount);
+      Pose localAnimBPose = PoseToLocalTransformPose(animB.framePoses[frameB], skeleton.bones, skeleton.boneCount);
 
+      Pose lerpPose = PoseLerp(localAnimAPose, localAnimBPose, skeleton.boneCount, blendFactor);
+      pose = PoseToGlobalTransformPose(lerpPose, skeleton.bones, skeleton.boneCount);
+
+      UnloadPose(localAnimAPose);
+      UnloadPose(localAnimBPose);
+      UnloadPose(lerpPose);
+    } else {
+      pose = PoseLerp(animA.framePoses[frameA], animB.framePoses[frameB], skeleton.boneCount, blendFactor);
+    }
     UpdateSkeletonPose(skeleton, pose);
     free(pose);
   }
