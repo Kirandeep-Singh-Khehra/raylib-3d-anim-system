@@ -1,6 +1,15 @@
 # RayLib 3D AnimSystem
 `Skeleton` and `Pose` based 3D Animation System for RayLib
 
+# Features
+ - Layer based animation system.(Similar to Unity's Layered animation system).
+ - Overriden/Interpolated and Additive blending implemented at both `Pose` level and `Skeleton` level.
+ - Choice of blending using local pose or global pose.
+ - Convert global pose to local pose or vice versa.
+ - `Pose` is defined as array of `Transform`. So, `ModelAnimation.framePoses[frame]` and `Model.bindPose` are both considered as `Pose` and hence completely compatible with Pose functions.
+ - [`BoneMask`](https://github.com/Kirandeep-Singh-Khehra/raylib-3d-anim-system/blob/main/src/bone_mask.c) implementation to assist in split body animation.
+ - Mask bones using bone name and regular expression.
+
 # Example
 Basic usage example is present in [`examples/skeleton/skeleton_animation_blending.c`](https://github.com/Kirandeep-Singh-Khehra/raylib-3d-anim-system/blob/main/examples/skeleton/skeleton_animation_blending.c)
 
@@ -30,16 +39,29 @@ Skeleton skeleton = LoadSkeletonFromModel(model);
       ```
 
 3. Then add any number of layers as needed.
-  ```c
-  void UpdateSkeletonModelAnimationPoseOverrideLayer(Skeleton skeleton,
-        ModelAnimation anim, int frame,
-        float factor,     /* weight of layer */
-        int flags,        /* not implemented */
-        float *boneMask); /* affect per bone */
-  ```
-  > Currently only override/interpolation is supported. Additive layer will be comming soon.
 
-**More Docs and Features Comming Soon ...**
+   a. Add Override/Interpolation layer
+      ```c
+      void UpdateSkeletonModelAnimationPoseOverrideLayer(Skeleton skeleton,
+            ModelAnimation anim, int frame,
+            float factor,     /* weight of layer */
+            int flags,        /* not implemented */
+            float *boneMask); /* affect per bone */
+      ```
+   b. Add Additive layer
+      ```c
+      void UpdateSkeletonModelAnimationPoseAdditiveLayer(Skeleton skeleton,
+            ModelAnimation anim, int frame,
+            Pose referencePose/* reference pose  */
+            float factor,     /* weight of layer */
+            int flags,        /* not implemented */
+            float *boneMask); /* affect per bone */
+      ```
+      > **Don't know what reference pose is and why is it needed?**</br>
+      > The transforms which when applied to reference pose makes it target pose. Additive layer calculates those transforms and applies to `Skeleton`'s pose.
+
+
+**More Docs, Examples and Features Comming Soon ...**
 
 **Happy Animating :)**
 

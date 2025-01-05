@@ -5,37 +5,17 @@
 
 #define USE_LOCAL_POSE (1 << 0)
 
-/*
-  Defined to implement bone hierarchy (present to check 
-    if any modification is needed for BoneInfo 
-    but is not implemented yet.)
-
-  Thinking to sort bones according to parent(Prefix tree) to get workable structure for bone hierarchy
-   - FK(Forward kinematics) Using tree data structure O(n) (n is no. of bones) and theta(log(n))
-   - FK using sorting O(n) and theta(n) <- Average case can be improved using weighed/right-skewed binary
-      search followed double pointers. 
-*/
-typedef struct KBoneInfo {
-    char name[32];          // Bone name
-    int parent;             // Bone parent
-} KBoneInfo;
-
 typedef struct Skeleton {
-  /* Extracted from Model */
   int boneCount;         // Number of bones
   BoneInfo *bones;       // Bones information (skeleton)
-  Pose bindPose;   // Bones base transformation (pose)
+  Pose bindPose;         // Bones base transformation (pose)
 
-  /* Extracted from Mesh */
   Matrix *boneMatrices;  // Bones animated transformation matrices (not used yet)
 
-  /* Kiran defined */
   Pose pose;      // Current pose
 } Skeleton;
 
 Skeleton LoadSkeletonFromModel(Model model);
-// void UpdateSkeletonBoneMatrices(Skeleton skeleton);
-// void UpdateModelBonesFromSkeleton(Model model, Skeleton skeleton); // Works same as below one(UpdateModelMeshFromPose())
 void UpdateModelBonesFromPose(Model model, Pose pose);
 void UnloadSkeleton(Skeleton skeleton);
 
