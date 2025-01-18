@@ -62,8 +62,6 @@ Vector2 velocity = {0.0f};
 enum Anim indexX = IDLE;
 enum Anim indexY = IDLE;
 
-float *fullBodyMask;
-
 void OnStart() {
   model = LoadModel(MODEL_FILE_NAME);
   for (int i = 1; i < model.materialCount; i++) {
@@ -75,18 +73,7 @@ void OnStart() {
 
   anims = LoadModelAnimations(ANIMATION_FILE_NAME, &animsCount);
 
-  model.transform = MatrixIdentity();
-  model.transform = MatrixMultiply(MatrixRotateX(PI / 2), model.transform);
-  model.transform =
-      MatrixMultiply(MatrixScale(0.01f, 0.01f, 0.01f), model.transform);
-  model.transform = MatrixMultiply(
-      MatrixTranslate(camera.target.x, camera.target.y, camera.target.z),
-      model.transform);
-
-  fullBodyMask = new_n(model.boneCount, float);
-  for (int i = 0; i < model.boneCount; i++) {
-    fullBodyMask[i] = 1.0f;
-  }
+  model.transform = MatrixScale(0.01f, 0.01f, 0.01f);
 
   camera.position.y = 3.0f;
   camera.position.z = -3.0f;
@@ -137,16 +124,16 @@ void OnUpdate() {
 #ifdef THREE_LAYER_IMPL
   UpdateSkeletonModelAnimation(skeleton, anims[IDLE], idleAnimFrameCounter);
   UpdateSkeletonModelAnimationPoseOverrideLayer(
-      skeleton, anims[indexX], animFrameCounter, weightX, USE_LOCAL_POSE, fullBodyMask);
+      skeleton, anims[indexX], animFrameCounter, weightX, USE_LOCAL_POSE, NULL);
   UpdateSkeletonModelAnimationPoseOverrideLayer(
-      skeleton, anims[indexY], animFrameCounter, weightY, USE_LOCAL_POSE, fullBodyMask);
+      skeleton, anims[indexY], animFrameCounter, weightY, USE_LOCAL_POSE, NULL);
 #endif
 #ifdef TWO_LAYER_IMPL
   UpdateSkeletonModelAnimationLerp(skeleton, anims[indexX], animFrameCounter,
                                    anims[indexY], animFrameCounter, weightY, USE_LOCAL_POSE);
   UpdateSkeletonModelAnimationPoseOverrideLayer(
       skeleton, anims[IDLE], idleAnimFrameCounter,
-      clamp(1.0f - Vector2Length(velocity), 0.0f, 1.0f), USE_LOCAL_POSE, fullBodyMask);
+      clamp(1.0f - Vector2Length(velocity), 0.0f, 1.0f), USE_LOCAL_POSE, NULL);
 #endif
 
   UpdateModelMeshFromPose(model, skeleton.pose);
@@ -170,7 +157,5 @@ void OnEnd() {
   UnloadModelAnimations(anims, animsCount);
   UnloadModel(model);
   UnloadSkeleton(skeleton);
-
-  free(fullBodyMask);
 }
 

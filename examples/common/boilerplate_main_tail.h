@@ -34,11 +34,17 @@ int main() {
 
   OnStart();
 
+#ifdef DISABLE_CURSOR
   DisableCursor();
+#endif
   SetTargetFPS(60);
 
   while (!WindowShouldClose()) {
-    UpdateCamera(&camera, CAMERA_FREE);
+    CameraMode mode = CAMERA_CUSTOM;
+#ifdef CAMERA_MODE
+    mode = CAMERA_MODE;
+#endif
+    UpdateCamera(&camera, mode);
 
     OnUpdate();
 

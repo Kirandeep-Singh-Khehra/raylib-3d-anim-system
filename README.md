@@ -11,7 +11,7 @@
  - Mask bones using bone name and regular expression.
 
 # Example
-Basic usage example is present in [`examples/skeleton/skeleton_animation_blending.c`](https://github.com/Kirandeep-Singh-Khehra/raylib-3d-anim-system/blob/main/examples/skeleton/skeleton_animation_blending.c)
+Basic usage example is present in [`examples/skeleton/skeleton_additive_blending.c`](https://github.com/Kirandeep-Singh-Khehra/raylib-3d-anim-system/blob/main/examples/skeleton/skeleton_additive_blending.c)
 
 # Usage
 This system in built with layer based animation blending(similar to Unity's Layered Animation) in mind. And its general usage consists of:
@@ -60,8 +60,10 @@ Skeleton skeleton = LoadSkeletonFromModel(model);
       > **Don't know what reference pose is and why is it needed?**</br>
       > The transforms which when applied to reference pose makes it target pose. Additive layer calculates those transforms and applies to `Skeleton`'s pose.
 
-
-**More Docs, Examples and Features Comming Soon ...**
+4. Apply pose to model.
+```c
+UpdateModelMeshFromPose(model, skeleton.pose);
+```
 
 **Happy Animating :)**
 
