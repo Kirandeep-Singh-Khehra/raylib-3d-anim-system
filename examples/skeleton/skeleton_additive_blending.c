@@ -29,7 +29,7 @@ BoneMask lowerBodyMask;
 void OnStart() {
   model = LoadModel("resources/models/bot.glb");
   skeleton = LoadSkeletonFromModel(model);
-  anims = LoadModelAnimations("../als/resources/models/bot.aim2.glb", &animCount);
+  anims = LoadModelAnimations("resources/models/bot.aim.glb", &animCount);
   motionAnims = LoadModelAnimations("resources/models/bot.glb", &motionAnimCount);
 
   for (int i = 0; i < model.materialCount; i++) {

@@ -266,7 +266,7 @@ Pose PoseToGlobalTransformPose(Pose localPose, BoneInfo *bones, int boneCount) {
 }
 
 void UnloadPose(Pose pose) {
-  if (!pose) {
+  if (pose) {
     free(pose);
   }
 }

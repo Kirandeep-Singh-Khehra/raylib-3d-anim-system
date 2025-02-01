@@ -17,7 +17,7 @@ void MaskBoneChild(BoneMask mask, BoneInfo *bones, char * name, float value, int
 void MaskBonesByRegex(BoneMask mask, BoneInfo *bones, char *pattern, float value, int boneCount);
 void MaskChildBonesByParentRegex(BoneMask mask, BoneInfo *bones, char *pattern, float value, int boneCount);
 
-BoneMask UnloadBoneMask(BoneMask mask);
+void UnloadBoneMask(BoneMask mask);
 
 BoneMask BoneMaskZeros(int boneCount) {
   BoneMask mask = malloc(boneCount * sizeof(float));
@@ -116,6 +116,12 @@ void MaskChildBonesByParentRegex(BoneMask mask, BoneInfo *bones, char *pattern, 
     }
 
     regfree(&regex);
+}
+
+void UnloadBoneMask(BoneMask mask) {
+  if(mask) {
+    free(mask);
+  }
 }
 
 #endif
