@@ -1,0 +1,1 @@
+emcc -o game.html als_main.c -Os -Wall /home/kirandeep/Documents/build/raylib2/src/libraylib.web.a -I. -I/home/kirandeep/Documents/build/raylib2/src -L. -L/home/kirandeep/Documents/build/raylib2/src/libraylib.web.a -s USE_GLFW=3 --shell-file /home/kirandeep/Documents/build/raylib2/src/shell.html -DPLATFORM_WEB --preload-file resources
