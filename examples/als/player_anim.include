@@ -1,0 +1,37 @@
+if (indexX == WALK || indexX == RUN) {
+    poseA = GetAnimPose(player->animEng.anims[IDLE], (int)player->animEng.animFrameCounters[IDLE]);
+
+    int frame = (int)player->animEng.animFrameCounters[IDLE] % min(player->animEng.anims[indexX].frameCount, player->animEng.anims[indexY].frameCount);
+
+    Pose moveX = GetAnimPose(player->animEng.anims[indexX], frame);
+    Pose moveY = GetAnimPose(player->animEng.anims[indexY], frame);
+    poseB = PoseLerp(moveX, moveY, player->model.boneCount, weightY);
+
+    blendFactor = speed;
+  } else {
+    poseA = GetAnimPose(player->animEng.anims[IDLE], (int)player->animEng.animFrameCounters[IDLE]);
+    int frame = (int)player->animEng.animFrameCounters[IDLE] % min(player->animEng.anims[indexX].frameCount, player->animEng.anims[indexY].frameCount);
+
+    int indexY_inv = indexY;
+    if (indexX == RUN_BACK)
+      indexY_inv = (indexY == RUN_LEFT)? RUN_RIGHT : RUN_LEFT;
+    if (indexX == WALK_BACK)
+      indexY_inv = (indexY == WALK_LEFT)? WALK_RIGHT : WALK_LEFT;
+
+    Pose moveX = GetAnimPose(player->animEng.anims[indexX    ],  frame);
+    Pose moveY = GetAnimPose(player->animEng.anims[indexY_inv], -frame);
+    poseB = PoseLerp(moveX, moveY, player->model.boneCount, weightY);
+
+    if (animationDirection.x > -0.5f && animationDirection.x < 0.0f) {
+      moveY = GetAnimPose(player->animEng.anims[indexY], frame);
+      Pose backWalkPose = poseB;
+
+      poseB = PoseLerp(moveY, backWalkPose, player->model.boneCount, animationDirection.x * -2.0f);
+
+      UnloadPose(backWalkPose);
+      UnloadPose(moveY);
+    }
+
+    blendFactor = speed;
+
+  }
