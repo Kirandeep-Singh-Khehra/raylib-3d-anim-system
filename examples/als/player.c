@@ -55,6 +55,7 @@ Player CreatePlayer() {
 
 void UpdatePlayerMotion(Player *player, Map map, KCamera *camera) {
   static Vector2 animationDirection;// = { player->kine.velocity.z, player->kine.velocity.x };
+  static float walkToRunBlend = 0.0f;
   bool isSprinting = IsKeyDown(KEY_P);
   animationDirection = Vector2MoveTowards(animationDirection
               , Vector2Normalize((Vector2){
@@ -66,7 +67,14 @@ void UpdatePlayerMotion(Player *player, Map map, KCamera *camera) {
   int indexX = (animationDirection.x < 0) ? RUN_BACK : RUN;
   int indexY = (animationDirection.y < 0) ? RUN_RIGHT : RUN_LEFT;
 
-  if (!isSprinting) {
+  if (isSprinting) {
+    walkToRunBlend += 1.0f/20.0f;
+  } else {
+    walkToRunBlend -= 1.0f/20.0f;
+  }
+  walkToRunBlend = Clamp(walkToRunBlend, 0.0f, 1.0f);
+
+  if (!isSprinting && (walkToRunBlend == 0.0f || walkToRunBlend == 1.0f)) {
     indexX += 5;
     indexY += 5;
   }
@@ -85,45 +93,26 @@ void UpdatePlayerMotion(Player *player, Map map, KCamera *camera) {
 
   player->animEng.animFrameCounters[IDLE] += 1.0f;
 
-  if (indexX == WALK || indexX == RUN) {
-    poseA = GetAnimPose(player->animEng.anims[IDLE], (int)player->animEng.animFrameCounters[IDLE]);
+  Pose moveLocalPose;
 
-    int frame = (int)player->animEng.animFrameCounters[IDLE] % min(player->animEng.anims[indexX].frameCount, player->animEng.anims[indexY].frameCount);
-
-    Pose moveX = GetAnimPose(player->animEng.anims[indexX], frame);
-    Pose moveY = GetAnimPose(player->animEng.anims[indexY], frame);
-    poseB = PoseLerp(moveX, moveY, player->model.boneCount, weightY);
-
-    blendFactor = speed;
+  if (walkToRunBlend == 0.0f || walkToRunBlend == 1.0f) {
+#include "player_anim.include"
+    moveLocalPose = PoseLerp(poseA, poseB, player->model.boneCount, blendFactor);
   } else {
-    poseA = GetAnimPose(player->animEng.anims[IDLE], (int)player->animEng.animFrameCounters[IDLE]);
-    int frame = (int)player->animEng.animFrameCounters[IDLE] % min(player->animEng.anims[indexX].frameCount, player->animEng.anims[indexY].frameCount);
+#include "player_anim.include"
+    Pose moveLocalRunPose = PoseLerp(poseA, poseB, player->model.boneCount, blendFactor);
 
-    int indexY_inv = indexY;
-    if (indexX == RUN_BACK)
-      indexY_inv = (indexY == RUN_LEFT)? RUN_RIGHT : RUN_LEFT;
-    if (indexX == WALK_BACK)
-      indexY_inv = (indexY == WALK_LEFT)? WALK_RIGHT : WALK_LEFT;
+    indexX += 5;
+    indexY += 5;
 
-    Pose moveX = GetAnimPose(player->animEng.anims[indexX    ],  frame);
-    Pose moveY = GetAnimPose(player->animEng.anims[indexY_inv], -frame);
-    poseB = PoseLerp(moveX, moveY, player->model.boneCount, weightY);
+#include "player_anim.include"
+    Pose moveLocalWalkPose = PoseLerp(poseA, poseB, player->model.boneCount, blendFactor);
 
-    if (animationDirection.x > -0.5f && animationDirection.x < 0.0f) {
-      moveY = GetAnimPose(player->animEng.anims[indexY], frame);
-      Pose backWalkPose = poseB;
-
-      poseB = PoseLerp(moveY, backWalkPose, player->model.boneCount, animationDirection.x * -2.0f);
-
-      UnloadPose(backWalkPose);
-      UnloadPose(moveY);
-    }
-
-    blendFactor = speed;
-
+    moveLocalPose = PoseLerp(moveLocalWalkPose, moveLocalRunPose, player->model.boneCount, walkToRunBlend);
+    UnloadPose(moveLocalWalkPose);
+    UnloadPose(moveLocalRunPose);
   }
 
-  Pose moveLocalPose = PoseLerp(poseA, poseB, player->model.boneCount, blendFactor);
   UnloadPose(player->pose);
   player->pose = PoseToGlobalTransformPose(moveLocalPose, player->model.bones, player->model.boneCount);
   UnloadPose(moveLocalPose);
