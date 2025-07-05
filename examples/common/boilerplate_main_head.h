@@ -8,7 +8,7 @@
 #include <assert.h>
 
 #define RLIGHTS_IMPLEMENTATION
-#include "../../src/external/rlights.h"
+#include "external/rlights.h"
 
 #define min(x, y) ((x < y) ? x : y)
 #define max(x, y) ((x > y) ? x : y)

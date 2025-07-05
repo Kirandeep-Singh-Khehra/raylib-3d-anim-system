@@ -1,8 +1,8 @@
 #ifndef __KIRAN_RAY_POSE__
 #define __KIRAN_RAY_POSE__
 
-#include "bone_mask.c"
-#include "transform.c"
+#include "bone_mask.h"
+#include "transform.h"
 
 #include <stdlib.h>
 #include <string.h>

@@ -16,7 +16,7 @@
 \******************************************************************/
 
 #include "../common/boilerplate_main.h"
-#include "../../src/skeleton.c"
+#include "skeleton.h"
 
 enum Anim {
   IDLE,
