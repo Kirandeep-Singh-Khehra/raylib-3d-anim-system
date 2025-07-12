@@ -17,7 +17,7 @@
  This system is built as drop in for raylib (https://github.com/raysan5/raylib/)
 \******************************************************************/
 
-#include "../../src/skeleton.c"
+#include "skeleton.h"
 #include "../common/boilerplate_main.h"
 
 #define MODEL_FILE_NAME "resources/models/bot.glb"

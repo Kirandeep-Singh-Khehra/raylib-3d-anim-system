@@ -10,6 +10,27 @@
  - [`BoneMask`](https://github.com/Kirandeep-Singh-Khehra/raylib-3d-anim-system/blob/main/src/bone_mask.c) implementation to assist in split body animation.
  - Mask bones using bone name and regular expression.
 
+# How to use?
+1. Include in your project.
+```sh
+git submodule add https://github.com/Kirandeep-Singh-Khehra/raylib-3d-anim-system.git ./kanim
+```
+
+2. Add in your `CMakeLists.txt`
+```cmake
+add_subdirectory(kanim) # Assuming kanim is in the same directory as this CMakeLists.txt
+# ...
+# Link to your executable
+  target_link_libraries(m_exe PRIVATE kanim)
+```
+
+3. To build examples.
+```sh
+cd examples
+make
+```
+Examples will be compiled and placed in their respective directories.
+
 # Example
 Basic usage example is present in [`examples/skeleton/skeleton_additive_blending.c`](https://github.com/Kirandeep-Singh-Khehra/raylib-3d-anim-system/blob/main/examples/skeleton/skeleton_additive_blending.c)
 

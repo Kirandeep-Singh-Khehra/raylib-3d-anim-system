@@ -26,7 +26,7 @@
 
 #include "../common/boilerplate_main.h"
 
-#include "../../src/skeleton.c"
+#include "skeleton.h"
 
 // Use any one of below
 #define THREE_LAYER_IMPL
