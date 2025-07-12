@@ -21,7 +21,7 @@ git submodule add https://github.com/Kirandeep-Singh-Khehra/raylib-3d-anim-syste
 add_subdirectory(kanim) # Assuming kanim is in the same directory as this CMakeLists.txt
 # ...
 # Link to your executable
-  target_link_libraries(ray_bullet_test PRIVATE kanim)
+  target_link_libraries(m_exe PRIVATE kanim)
 ```
 
 # Example
