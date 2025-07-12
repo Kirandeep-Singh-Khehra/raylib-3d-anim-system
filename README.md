@@ -16,13 +16,20 @@
 git submodule add https://github.com/Kirandeep-Singh-Khehra/raylib-3d-anim-system.git ./kanim
 ```
 
-2. Add in you `CMakeLists.txt`
+2. Add in your `CMakeLists.txt`
 ```cmake
 add_subdirectory(kanim) # Assuming kanim is in the same directory as this CMakeLists.txt
 # ...
 # Link to your executable
   target_link_libraries(m_exe PRIVATE kanim)
 ```
+
+3. To build examples.
+```sh
+cd examples
+make
+```
+Examples will be compiled and placed in their respective directories.
 
 # Example
 Basic usage example is present in [`examples/skeleton/skeleton_additive_blending.c`](https://github.com/Kirandeep-Singh-Khehra/raylib-3d-anim-system/blob/main/examples/skeleton/skeleton_additive_blending.c)
