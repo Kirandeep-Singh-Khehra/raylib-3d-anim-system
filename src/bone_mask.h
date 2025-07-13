@@ -17,6 +17,8 @@ void MaskBoneChild(BoneMask mask, BoneInfo *bones, char * name, float value, int
 void MaskBonesByRegex(BoneMask mask, BoneInfo *bones, char *pattern, float value, int boneCount);
 void MaskChildBonesByParentRegex(BoneMask mask, BoneInfo *bones, char *pattern, float value, int boneCount);
 
+BoneMask CopyBoneMask(BoneMask mask, int boneCount);
+void BoneMaskInvert(BoneMask mask, int boneCount);
 void UnloadBoneMask(BoneMask mask);
 
 BoneMask BoneMaskZeros(int boneCount) {
@@ -116,6 +118,23 @@ void MaskChildBonesByParentRegex(BoneMask mask, BoneInfo *bones, char *pattern, 
     }
 
     regfree(&regex);
+}
+
+
+BoneMask CopyBoneMask(BoneMask mask, int boneCount) {
+  BoneMask newMask = BoneMaskZeros(boneCount);
+
+  for (int i = 0; i < boneCount; i++) {
+    newMask[i] = mask[i];
+  }
+
+  return newMask;
+}
+
+void BoneMaskInvert(BoneMask mask, int boneCount) {
+  for (int i = 0; i < boneCount; i++) {
+    mask[i] = 1.0f - mask[i];
+  }
 }
 
 void UnloadBoneMask(BoneMask mask) {
