@@ -9,9 +9,12 @@
 
 typedef Transform *Pose;
 
+#define GetAnimPose(anim, frame) (anim.framePoses[rmod(frame, anim.frameCount)])
+
 Pose InitPose(int boneCount);
 Pose CopyPose(Pose pose, int boneCount);
 void UnloadPose(Pose pose);
+void UnloadPosePtr(Pose *pose);
 
 Pose PoseScale(Pose pose, int boneCount, float factor);
 Pose PoseInvert(Pose pose, int boneCount);
@@ -270,6 +273,13 @@ void UnloadPose(Pose pose) {
     free(pose);
   }
 }
+
+void UnloadPosePtr(Pose *pose_ptr) {
+  if (pose_ptr) {
+    UnloadPose(*pose_ptr);
+  }
+}
+
 
 void DrawPose(Pose pose, BoneInfo *bones, int boneCount, Matrix mat,
               Color color) {

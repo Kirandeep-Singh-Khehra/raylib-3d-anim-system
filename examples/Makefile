@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -I../src -Wall -Wextra -std=c99
+CFLAGS = -I../src -I./common -Wall -Wextra -std=c99
 LDFLAGS = -lraylib -lraygui -lm
 
 SOURCES = $(shell find . -type f -name "*.c" ! -path "./common/*")

@@ -23,7 +23,7 @@ int main() {
                  SHADER_UNIFORM_VEC4);
 
   Light lights[MAX_LIGHTS] = {0};
-  lights[0] = CreateLight(LIGHT_POINT, (Vector3){-2, 1, -2}, Vector3Zero(),
+  lights[0] = CreateLight(LIGHT_POINT, (Vector3){-200, 100, -200}, Vector3Zero(),
                           WHITE, skinningShader);
 
   camera.position = (Vector3){0.0f, 3.0f, -3.0f};
