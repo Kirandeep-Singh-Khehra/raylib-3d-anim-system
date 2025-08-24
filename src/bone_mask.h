@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <regex.h>
+#include "re.h"
 
 typedef float* BoneMask;
 
@@ -65,49 +65,33 @@ void MaskBoneChild(BoneMask mask, BoneInfo *bones, char * name, float value, int
 }
 
 void MaskBonesByRegex(BoneMask mask, BoneInfo *bones, char *pattern, float value, int boneCount) {
-    regex_t regex;
-    int ret;
-
-    ret = regcomp(&regex, pattern, REG_EXTENDED);
-    if (ret) {
-        printf("Could not compile regex\n");
-        free(mask);
-        return;
-    }
+    re_t regex = re_compile(pattern);
+    int idx;
 
     for (int i = 0; i < boneCount; i++) {
-        ret = regexec(&regex, bones[i].name, 0, NULL, 0);
-        if (ret == 0) {
+        int matchlen = 0;
+        idx = re_matchp(regex, bones[i].name, &matchlen);
+        if (idx > 0) {
             mask[i] = value;
             printf("Bone \"%s\" matches the pattern.\n", bones[i].name);
         }
     }
-
-    regfree(&regex);
 }
 
 void MaskChildBonesByParentRegex(BoneMask mask, BoneInfo *bones, char *pattern, float value, int boneCount) {
-    regex_t regex;
-    int ret;
-
     for (int i = 0; i < boneCount; i++) {
         mask[i] = 0.0f;
     }
 
-    ret = regcomp(&regex, pattern, REG_EXTENDED);
-    if (ret) {
-        printf("Could not compile regex\n");
-        free(mask);
-        return;
-    }
-
+    re_t regex = re_compile(pattern);
     for (int i = 0; i < boneCount; i++) {
         int currentBoneId = i;
         while (bones[currentBoneId].parent != -1) {
             int parentBoneId = bones[currentBoneId].parent;
 
-            ret = regexec(&regex, bones[parentBoneId].name, 0, NULL, 0);
-            if (ret == 0) {
+            int matchlen = 0;
+            int idx = re_matchp(regex, bones[parentBoneId].name, &matchlen);
+            if (idx > 0) {
                 mask[currentBoneId] = value;
                 printf("Bone \"%s\" (ID: %d) is a child of bone \"%s\" (ID: %d) which matches the pattern.\n",
                        bones[currentBoneId].name, currentBoneId, bones[parentBoneId].name, parentBoneId);
@@ -116,10 +100,7 @@ void MaskChildBonesByParentRegex(BoneMask mask, BoneInfo *bones, char *pattern, 
             currentBoneId = parentBoneId;
         }
     }
-
-    regfree(&regex);
 }
-
 
 BoneMask CopyBoneMask(BoneMask mask, int boneCount) {
   BoneMask newMask = BoneMaskZeros(boneCount);
