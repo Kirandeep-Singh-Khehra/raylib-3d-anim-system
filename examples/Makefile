@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -I../src -I./common -Wall -Wextra -std=c99
 LDFLAGS = -lraylib -lraygui -lm
 
-SOURCES = $(shell find . -type f -name "*.c" ! -path "./common/*")
+SOURCES = $(shell find . -type f -name "*.c" ! -path "./common/*" ! -path "./r3d/*")
 TARGETS = $(patsubst %.c,%.out,$(SOURCES))
 
 all: $(TARGETS)
